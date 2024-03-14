@@ -4,7 +4,24 @@ const Track = require('../models/Track');
 const Playlist = require('../models/Playlist');
 
 const getAll = catchError(async(req, res) => {
-    const results = await User.findAll({include:[Track,Playlist]});
+    const results = await User.findAll({
+        include: [
+          // Product
+          {
+            model: Playlist,
+            attributes: { exclude: ["updatedAt", "createdAt"] },
+            include: {
+              model: Track,
+              attributes: ['name']
+            }
+          },
+          {
+            model:Track
+          }
+        ],
+       
+    
+      });
     return res.json(results);
 });
 
@@ -15,7 +32,7 @@ const create = catchError(async(req, res) => {
 
 const getOne = catchError(async(req, res) => {
     const { id } = req.params;
-    const result = await User.findByPk(id);
+    const result = await User.findByPk(id,{ include:[Track,Playlist]});
     if(!result) return res.sendStatus(404);
     return res.json(result);
 });
@@ -37,10 +54,37 @@ const update = catchError(async(req, res) => {
     return res.json(result[1][0]);
 });
 
+const setFavoriteTracks = catchError(async(req,res)=>{
+    const { id } = req.params;
+    const result = await User.findByPk(id);
+
+    if (!result) return res.sendStatus(404)
+
+    await result.addTracks(req.body)
+
+    const tracks = await result.getTracks()
+
+  return res.json(tracks)
+})
+
+const removeFavoriteTracks = catchError(async(req,res)=>{
+    const { id } = req.params;
+    const result = await User.findByPk(id);
+    if (!result) return res.sendStatus(404)
+
+    await result.removeTracks(req.body)
+
+    const tracks = await result.getTracks()
+
+  return res.json(tracks)
+})
+
 module.exports = {
     getAll,
     create,
     getOne,
     remove,
-    update
+    update,
+    setFavoriteTracks,
+    removeFavoriteTracks
 }   

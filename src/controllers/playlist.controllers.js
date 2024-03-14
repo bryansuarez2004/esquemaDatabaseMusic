@@ -1,8 +1,9 @@
 const catchError = require('../utils/catchError');
 const Playlist = require('../models/Playlist');
+const Track = require('../models/Track');
 
 const getAll = catchError(async(req, res) => {
-    const results = await Playlist.findAll();
+    const results = await Playlist.findAll({include:Track});
     return res.json(results);
 });
 
@@ -13,7 +14,7 @@ const create = catchError(async(req, res) => {
 
 const getOne = catchError(async(req, res) => {
     const { id } = req.params;
-    const result = await Playlist.findByPk(id);
+    const result = await Playlist.findByPk(id,{include:Track});
     if(!result) return res.sendStatus(404);
     return res.json(result);
 });
